@@ -302,6 +302,14 @@ default_item_delete(ENGINE_HANDLE* handle, const void* cookie,
     return ret;
 }
 
+#ifdef RM_ITEM_REFCNT
+static void
+default_item_free(ENGINE_HANDLE* handle, const void *cookie, item* item)
+{
+    item_free(get_real_item(item));
+}
+#endif
+
 static void
 default_item_release(ENGINE_HANDLE* handle, const void *cookie, item* item)
 {
@@ -1519,6 +1527,9 @@ create_instance(uint64_t interface, GET_SERVER_API get_server_api,
          /* Item API */
          .allocate          = default_item_allocate,
          .remove            = default_item_delete,
+#ifdef RM_ITEM_REFCNT
+         .free              = default_item_free,
+#endif
          .release           = default_item_release,
          .get               = default_get,
          .store             = default_store,

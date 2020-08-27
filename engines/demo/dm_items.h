@@ -123,6 +123,10 @@ ENGINE_ERROR_CODE dm_item_flush_expired(struct demo_engine *engine,
                                      const char *prefix, const int nprefix,
                                      time_t when, const void* cookie);
 
+#ifdef RM_ITEM_REFCNT
+void dm_item_free(struct demo_engine *engine, hash_item *it);
+#endif
+
 /**
  * Release our reference to the current item
  * @param engine handle to the storage engine

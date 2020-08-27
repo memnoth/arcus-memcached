@@ -255,6 +255,10 @@ extern "C" {
                                     const void* key, const size_t nkey,
                                     uint64_t cas, uint16_t vbucket);
 
+#ifdef RM_ITEM_REFCNT
+        void (*free)(ENGINE_HANDLE* handle, const void *cookie, item* item);
+#endif
+
         /**
          * Indicate that a caller who received an item no longer needs
          * it.

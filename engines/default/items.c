@@ -862,7 +862,11 @@ static hash_item *do_item_alloc(const void *key, const uint32_t nkey,
 
     it->next = it->prev = it; /* special meaning: unlinked from LRU */
     it->h_next = 0;
+#ifdef RM_ITEM_REFCNT
+    it->refcount = 0;
+#else
     it->refcount = 1;     /* the caller will have a reference */
+#endif
     it->refchunk = 0;
     DEBUG_REFCNT(it, '*');
     it->iflag = config->use_cas ? ITEM_WITH_CAS : 0;
@@ -5930,6 +5934,15 @@ hash_item *item_get(const void *key, const uint32_t nkey)
     UNLOCK_CACHE();
     return it;
 }
+
+#ifdef RM_ITEM_REFCNT
+void item_free(hash_item *item)
+{
+    LOCK_CACHE();
+    do_item_free(item);
+    UNLOCK_CACHE();
+}
+#endif
 
 /*
  * Decrements the reference count on an item and adds it to the freelist if

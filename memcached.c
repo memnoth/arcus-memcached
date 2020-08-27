@@ -825,7 +825,11 @@ static void conn_cleanup(conn *c)
     assert(c != NULL);
 
     if (c->item) {
+#ifdef RM_ITEM_REFCNT
+        mc_engine.v1->free(mc_engine.v0, c, c->item);
+#else
         mc_engine.v1->release(mc_engine.v0, c, c->item);
+#endif
         c->item = 0;
     }
 
@@ -3257,8 +3261,15 @@ static void complete_update_ascii(conn *c)
         STATS_CMD(c, set, c->hinfo.key, c->hinfo.nkey);
     }
 
+#ifdef RM_ITEM_REFCNT
+    if (c->store_op == OPERATION_ADD && ret != ENGINE_SUCCESS) {
+        mc_engine.v1->free(mc_engine.v0, c, c->item);
+    }
+#else
     /* release the c->item reference */
     mc_engine.v1->release(mc_engine.v0, c, c->item);
+#endif
+
     c->item = 0;
 }
 
@@ -7082,7 +7093,11 @@ static void process_bin_update(conn *c)
                                  c->binary_header.request.cas);
     if (ret == ENGINE_SUCCESS && !mc_engine.v1->get_item_info(mc_engine.v0,
                                                               c, it, &c->hinfo)) {
+#ifdef RM_ITEM_REFCNT
+        mc_engine.v1->free(mc_engine.v0, c, it);
+#else
         mc_engine.v1->release(mc_engine.v0, c, it);
+#endif
         write_bin_packet(c, PROTOCOL_BINARY_RESPONSE_EINTERNAL, 0);
         return;
     }
@@ -7156,7 +7171,11 @@ static void process_bin_append_prepend(conn *c)
                                  0, 0, c->binary_header.request.cas);
     if (ret == ENGINE_SUCCESS && !mc_engine.v1->get_item_info(mc_engine.v0,
                                                               c, it, &c->hinfo)) {
+#ifdef RM_ITEM_REFCNT
+        mc_engine.v1->free(mc_engine.v0, c, it);
+#else
         mc_engine.v1->release(mc_engine.v0, c, it);
+#endif
         write_bin_packet(c, PROTOCOL_BINARY_RESPONSE_EINTERNAL, 0);
         return;
     }
@@ -8357,7 +8376,11 @@ static void process_update_command(conn *c, token_t *tokens, const size_t ntoken
     switch (ret) {
     case ENGINE_SUCCESS:
         if (!mc_engine.v1->get_item_info(mc_engine.v0, c, it, &c->hinfo)) {
+#ifdef RM_ITEM_REFCNT
+            mc_engine.v1->free(mc_engine.v0, c, it);
+#else
             mc_engine.v1->release(mc_engine.v0, c, it);
+#endif
             out_string(c, "SERVER_ERROR error getting item data");
             break;
         }

@@ -490,6 +490,15 @@ hash_item *dm_item_get(struct demo_engine *engine, const void *key, const size_t
     return it;
 }
 
+#ifdef RM_ITEM_REFCNT
+void dm_item_free(struct demo_engine *engine, hash_item *item)
+{
+    pthread_mutex_lock(&engine->cache_lock);
+    do_item_free(engine, item);
+    pthread_mutex_unlock(&engine->cache_lock);
+}
+#endif
+
 /*
  * Decrements the reference count on an item and adds it to the freelist if
  * needed.

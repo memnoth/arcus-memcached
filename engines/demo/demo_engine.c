@@ -220,6 +220,14 @@ Demo_item_delete(ENGINE_HANDLE* handle, const void* cookie,
     return ret;
 }
 
+#ifdef RM_ITEM_REFCNT
+static void
+Demo_item_free(ENGINE_HANDLE* handle, const void *cookie, item* item)
+{
+    dm_item_free(get_handle(handle), get_real_item(item));
+}
+#endif
+
 static void
 Demo_item_release(ENGINE_HANDLE* handle, const void *cookie, item* item)
 {
@@ -786,6 +794,9 @@ create_instance(uint64_t interface, GET_SERVER_API get_server_api,
          /* Item API */
          .allocate          = Demo_item_allocate,
          .remove            = Demo_item_delete,
+#ifdef RM_ITEM_REFCNT
+         .free              = Demo_item_free,
+#endif
          .release           = Demo_item_release,
          .get               = Demo_get,
          .store             = Demo_store,

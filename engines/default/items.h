@@ -373,6 +373,10 @@ char *item_cachedump(const unsigned int slabs_clsid,
 ENGINE_ERROR_CODE item_flush_expired(const char *prefix, const int nprefix,
                                      rel_time_t when, const void *cookie);
 
+#ifdef RM_ITEM_REFCNT
+void item_free(hash_item *it);
+#endif
+
 /**
  * Release our reference to the current item
  * @param it the item to release
